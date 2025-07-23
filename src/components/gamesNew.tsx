@@ -3,7 +3,7 @@ import { forwardRef } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import { Dropdown, Button, Input } from 'antd'
 import { Link } from 'react-router-dom'
-import './App.css'
+//import './App.css'
 //import { If } from './If'
 import { category, gameSorting, interest, interestObj, translationType } from '../constants';
 import { cln, getGameVersion } from '../utils/utils';
@@ -26,87 +26,8 @@ interface Game {
     rank?: number;
 }
 
-const gridComponents = {
-    List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
-      <div
-        ref={ref as any}
-        className="gameFlex"
-        {...props}
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: "0.5rem",
-          margin: "0.5rem",
-          ...style,
-        }}
-      >
-        {children}
-      </div>
-    )),
-    Item: ({ children, ...props }: { children?: ReactNode }) => children
-}
-
-type MenuItem = {
-    key: string;
-    label: string;
-    onClick: () => void;
-};
-
-const createMenuItems = (items: any[], keyPrefix: string, onClick: (value: any) => void): MenuItem[] => {
-    return items.map((item, index) => ({
-        key: `${keyPrefix}-${index}`,
-        label: typeof item === 'string' ? item : item.toString(),
-        onClick: () => onClick(index)
-    }));
-};
-
-const sortingMenu = createMenuItems(gameSorting, 'sort', (i) => {
-    state.sort = i;
-    localStorage.gameSort = i;
-    filterGames(1);
-});
-
-const categoryMenu = createMenuItems(category, 'category', (i) => {
-    state.category = i;
-    filterGames(1);
-});
-
-const sizeGameMenu = createMenuItems(Object.values(interestObj), 'size', (num) => {
-    state.size = num;
-    filterGames(1);
-});
-
-
-const transTypeMenu = createMenuItems(Object.values(translationType), 'trans', (num) => {
-    state.transType = num;
-    filterGames(1);
-});
-
-const resetFilters = () => {
-    state.sort = 1;
-    state.search = "";
-    state.type = 0;
-    state.category = 0;
-    state.size = 0;
-    state.team = 0;
-    state.transType = 0;
-    state.hidden = 0;
-    state.o18 = false;
-    localStorage.gameSort = 1;
-    filterGames(1);
-};
-
-const addFilter = () => {
-    state.filtersOpen = !state.filtersOpen;
-};
-
-const filterGames = (filterFn: any) =>  {
-    
-}
-
 const state = proxy({
-    games: [],
+    games: (window as any).gamesData || [],
     dynamicFilters: [],
     sort: +localStorage.gameSort || 1,
     search: "",
@@ -130,8 +51,87 @@ const state = proxy({
     ]
 });
 
-export function Games() {
-    const stat = useSnapshot(state);
+const Games: React.FC = () => {
+    const stats = useSnapshot(state);
+
+    const gridComponents = {
+        List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
+          <div
+            ref={ref as any}
+            className="gameFlex"
+            {...props}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "0.5rem",
+              margin: "0.5rem",
+              ...style,
+            }}
+          >
+            {children}
+          </div>
+        )),
+        Item: ({ children, ...props }: { children?: ReactNode }) => children
+    }
+    
+    type MenuItem = {
+        key: string;
+        label: string;
+        onClick: () => void;
+    };
+    
+    const createMenuItems = (items: any[], keyPrefix: string, onClick: (value: any) => void): MenuItem[] => {
+        return items.map((item, index) => ({
+            key: `${keyPrefix}-${index}`,
+            label: typeof item === 'string' ? item : item.toString(),
+            onClick: () => onClick(index)
+        }));
+    };
+    
+    const sortingMenu = createMenuItems(gameSorting, 'sort', (i) => {
+        state.sort = i;
+        localStorage.gameSort = i;
+        filterGames(1);
+    });
+    
+    const categoryMenu = createMenuItems(category, 'category', (i) => {
+        state.category = i;
+        filterGames(1);
+    });
+    
+    const sizeGameMenu = createMenuItems(Object.values(interestObj), 'size', (num) => {
+        state.size = num;
+        filterGames(1);
+    });
+    
+    
+    const transTypeMenu = createMenuItems(Object.values(translationType), 'trans', (num) => {
+        state.transType = num;
+        filterGames(1);
+    });
+    
+    const resetFilters = () => {
+        state.sort = 1;
+        state.search = "";
+        state.type = 0;
+        state.category = 0;
+        state.size = 0;
+        state.team = 0;
+        state.transType = 0;
+        state.hidden = 0;
+        state.o18 = false;
+        localStorage.gameSort = 1;
+        filterGames(1);
+    };
+    
+    const addFilter = () => {
+        state.filtersOpen = !state.filtersOpen;
+    };
+    
+    const filterGames = (filterFn: any) =>  {
+        
+    }
 
     return (
         <div className="games">
@@ -172,18 +172,17 @@ export function Games() {
                             filterGames(1);
                         }}
                     />
-                    <div className="gameCount">Zobrazeno {stat.games.length} překladů</div>
+                    <div className="gameCount">Zobrazeno {stats.games.length} překladů</div>
                 </div>
 
 
                 <div className={cln({games:1})}>
                     <VirtuosoGrid
                         style={{ height: "100%" }}
-                        totalCount={stat.games.length}
+                        totalCount={stats.games.length}
                         components={gridComponents}
                         itemContent={(i) => {
-                            const game = stat.games[i] as Game;
-                            const allowModify = false; // TODO: Replace with proper auth check
+                            const game = stats.games[i] as Game;
 
                             return (
                                 <Link className={cln({game: 1, ht: game.handTranslation == 1, ce: game.completeEdited == 1})}
@@ -195,24 +194,20 @@ export function Games() {
                                         
                                         src={`/img/hry/${game.shortcut}.webp?v${game.imgCount || 0}`}
                                         alt={`${game.name} čeština ke stažení - download`}
-                                        onLoad={(e: any) => game.loaded = true}
+                                        onLoad={(e: any) => state.games[i].loaded = true}
                                         onError={(e: any) => (e.target.src = "/img/hry/bez-obrazku.png?v1")}
                                     />
-                                    <Link className="gameInfo" to={`/hra/${game.shortcut}`}>
-                                        <div className="gameName">{game.name}</div>
-                                        <div className="gameNumDl">
-                                            v{getGameVersion(game?.version || "") || "?"} <Fa.FaDownload /> {game.numDl}x
-                                        </div>
-                                        <div className="gameDate">
-                                            <span title="Změněno">{game.changed?.dmy}</span> / <span title="Přidáno">{game.added?.dmy}</span>
-                                        </div>
-                                        <div className="gameAutor">
-                                            {game.autors ? game.autors.split(",")[0] : ""}
-                                        </div>
-                                        {<div className="gameSign" /*style={{backgroundImage: `url(${gs.baseURL}img/zlato.webp)`}}*/ >
-                                            <div className="shadow" />
-                                        </div>}
-                                    </Link>
+                                    <div className="gameName">{game.name}</div>
+                                    <div className="gameNumDl">
+                                        v{getGameVersion(game?.version || "") || "?"} <Fa.FaDownload /> {game.numDl}x
+                                    </div>
+                                    <div className="gameDate">
+                                        <span title="Změněno">{game.changed?.dmy}</span> / <span title="Přidáno">{game.added?.dmy}</span>
+                                    </div>
+                                    <div className="gameAutor">
+                                        {game.autors ? game.autors.split(",")?.[0] : ""}
+                                    </div>
+                                
                                 </Link>
                         )}}
                     />
@@ -225,3 +220,5 @@ export function Games() {
         </div>
     )
 }
+
+export default Games;

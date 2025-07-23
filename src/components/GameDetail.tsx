@@ -2,12 +2,14 @@ import { useParams } from 'react-router-dom'
 import './GameDetail.css'
 
 interface Game {
-  id: string
   shortcut: string
   name: string
-  version: string
-  description?: string
-  image?: string
+  version?: string
+  numDl?: number
+  changed?: { dmy: string }
+  added?: { dmy: string }
+  autors?: string
+  imgCount?: number
 }
 
 export default function GameDetail() {
@@ -33,8 +35,14 @@ export default function GameDetail() {
   return (
     <div className="game-detail">
       <h1>{game.name}</h1>
-      <img src={game.image} alt={game.name} />
-      <p>{game.description}</p>
+      <img 
+        src={`/img/hry/${game.shortcut}.webp?v${game.imgCount || 0}`} 
+        alt={game.name}
+        onError={(e: any) => (e.target.src = "/img/hry/bez-obrazku.png?v1")}
+      />
+      {game.autors && <p>Autor: {game.autors}</p>}
+      {game.version && <p>Verze: {game.version}</p>}
+      {game.numDl && <p>Stažení: {game.numDl}x</p>}
       
       <div className="details-section">
         <h2>Game Details</h2>
