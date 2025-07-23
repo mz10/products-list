@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './App.css'
+import './styles/App.scss'
 import Test from './components/Test'
 import GameDetail from './components/GameDetail'
 import Games from './components/gamesNew'

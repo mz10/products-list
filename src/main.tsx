@@ -5,7 +5,7 @@ import './index.css'
 import App from './App.tsx'
 
 // Load games data
-fetch('/data/games.json')
+fetch('/games.json')
   .then(response => response.json())
   .then(data => {
     (window as any).gamesData = data

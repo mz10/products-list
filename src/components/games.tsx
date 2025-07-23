@@ -32,7 +32,7 @@ interface Game {
 }
 
 const fetchGames = async (): Promise<Game[]> => {
-  const response = await fetch('/data/games.json');
+  const response = await fetch('/games.json');
   if (!response.ok) {
     throw new Error('Network response was not ok');
   }

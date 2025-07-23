@@ -1,0 +1,138 @@
+// Games list styles
+.games {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+.filterBar {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  background: gray;
+}
+
+.gameBar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  button {
+    width: 4.5rem;
+  }
+}
+
+.gameFlex {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  flex: 1;
+  min-height: 0; /* Fix for flex children */
+}
+
+.game {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+
+  width: 27rem;
+  display: flex;
+  flex: none;
+  align-content: stretch;
+  box-sizing: border-box;
+
+  
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  &.ht {
+    border-left: 4px solid #1890ff;
+  }
+
+  &.ce {
+    border-left: 4px solid #52c41a;
+  }
+}
+
+.gameImg {
+  width: 150px;
+  height: 200px;
+  min-width: 150px;
+  background-position: center;
+  background-size: cover;
+  background-color: #959595;
+  cursor: pointer;
+  box-shadow: inset 0 0 20px transparent;
+  color: transparent;
+  opacity: 0;
+  transition: .4s opacity;
+  border-radius: 5px 0 0 5px;
+  
+  &.loaded {
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
+}
+
+.gameInfo {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  transition: 1s;
+  border-radius: 0 5px 5px 0;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+
+}
+
+.gameName {
+  padding: 0.5rem;
+  font-weight: 200;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: black;
+}
+
+.gameNumDl,
+.gameDate,
+.gameAutor {
+  padding: 0 0.5rem 0.5rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.gameCount {
+  margin-left: auto;
+  padding: 0 1rem;
+  font-weight: bold;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.gameList {
+  position: relative;
+  flex-direction: column;
+  height: 100%;
+}
