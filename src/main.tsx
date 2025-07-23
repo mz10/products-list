@@ -1,10 +1,22 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
 
+// Load games data
+fetch('/data/games.json')
+  .then(response => response.json())
+  .then(data => {
+    (window as any).gamesData = data
+  })
+
+const queryClient = new QueryClient()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </StrictMode>,
 )

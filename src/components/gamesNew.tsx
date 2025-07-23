@@ -1,0 +1,227 @@
+import type { ReactNode } from 'react'
+import { forwardRef } from 'react'
+import { proxy, useSnapshot } from 'valtio'
+import { Dropdown, Button, Input } from 'antd'
+import { Link } from 'react-router-dom'
+import './App.css'
+//import { If } from './If'
+import { category, gameSorting, interest, interestObj, translationType } from '../constants';
+import { cln, getGameVersion } from '../utils/utils';
+import { VirtuosoGrid } from 'react-virtuoso';
+import * as Fa from 'react-icons/fa';
+
+interface Game {
+    shortcut: string;
+    name: string;
+    loaded?: boolean;
+    imgCount?: number;
+    handTranslation?: number;
+    completeEdited?: number;
+    version?: string;
+    numDl?: number;
+    changed?: { dmy: string };
+    added?: { dmy: string };
+    autors?: string;
+    autor?: number;
+    rank?: number;
+}
+
+const gridComponents = {
+    List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
+      <div
+        ref={ref as any}
+        className="gameFlex"
+        {...props}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "0.5rem",
+          margin: "0.5rem",
+          ...style,
+        }}
+      >
+        {children}
+      </div>
+    )),
+    Item: ({ children, ...props }: { children?: ReactNode }) => children
+}
+
+type MenuItem = {
+    key: string;
+    label: string;
+    onClick: () => void;
+};
+
+const createMenuItems = (items: any[], keyPrefix: string, onClick: (value: any) => void): MenuItem[] => {
+    return items.map((item, index) => ({
+        key: `${keyPrefix}-${index}`,
+        label: typeof item === 'string' ? item : item.toString(),
+        onClick: () => onClick(index)
+    }));
+};
+
+const sortingMenu = createMenuItems(gameSorting, 'sort', (i) => {
+    state.sort = i;
+    localStorage.gameSort = i;
+    filterGames(1);
+});
+
+const categoryMenu = createMenuItems(category, 'category', (i) => {
+    state.category = i;
+    filterGames(1);
+});
+
+const sizeGameMenu = createMenuItems(Object.values(interestObj), 'size', (num) => {
+    state.size = num;
+    filterGames(1);
+});
+
+
+const transTypeMenu = createMenuItems(Object.values(translationType), 'trans', (num) => {
+    state.transType = num;
+    filterGames(1);
+});
+
+const resetFilters = () => {
+    state.sort = 1;
+    state.search = "";
+    state.type = 0;
+    state.category = 0;
+    state.size = 0;
+    state.team = 0;
+    state.transType = 0;
+    state.hidden = 0;
+    state.o18 = false;
+    localStorage.gameSort = 1;
+    filterGames(1);
+};
+
+const addFilter = () => {
+    state.filtersOpen = !state.filtersOpen;
+};
+
+const filterGames = (filterFn: any) =>  {
+    
+}
+
+const state = proxy({
+    games: [],
+    dynamicFilters: [],
+    sort: +localStorage.gameSort || 1,
+    search: "",
+    type: 0,
+    category: 0,
+    size: 0,
+    team: 0,
+    transType: 0,
+    hidden: 0,
+    o18: false,
+    hideFilters: false,
+    filtersOpen: false,
+    sortFn: [
+        (a: Game, b: Game) => (a.rank || 0) - (b.rank || 0),
+        (a: Game, b: Game) => (b.numDl || 0) - (a.numDl || 0),
+        (a: Game, b: Game) => ((b.changed as any) || 0) - ((a.changed as any) || 0),
+        (a: Game, b: Game) => (b.added as any) - (a.added as any),
+        (a: Game, b: Game) => (a.rank || 0) - (b.rank || 0),
+        (a: Game, b: Game) => (a.name || "").localeCompare(b.name || "", "cs", {sensitivity: 'variant', caseFirst: 'upper'}),
+        (b: Game, a: Game) => (a.name || "").localeCompare(b.name || "", "cs", {sensitivity: 'variant', caseFirst: 'upper'})
+    ]
+});
+
+export function Games() {
+    const stat = useSnapshot(state);
+
+    return (
+        <div className="games">
+
+            <div className="filterBar">
+                <div className="gameBar">
+                    <Dropdown menu={{ items: sortingMenu }} trigger={['click']}>
+                        <Button>Řazení</Button>
+                    </Dropdown>
+                    <Dropdown menu={{ items: categoryMenu }} trigger={['click']}>
+                        <Button>Žánr</Button>
+                    </Dropdown>
+                    <Dropdown menu={{ items: sizeGameMenu }} trigger={['click']}>
+                        <Button>Velikost</Button>
+                    </Dropdown>
+                    <Dropdown menu={{ items: transTypeMenu }} trigger={['click']}>
+                        <Button>Kvalita</Button>
+                    </Dropdown>
+
+                    <Button onClick={resetFilters}>Reset</Button>
+
+                    <Dropdown menu={{ items: [
+                        { key: 'sorting', label: 'Řazení', children: sortingMenu },
+                        { key: 'category', label: 'Žánr', children: categoryMenu },
+                        { key: 'size', label: 'Velikost', children: sizeGameMenu },
+                        { key: 'transType', label: 'Kvalita překladu', children: transTypeMenu },
+                        { key: 'filters', label: 'Filtry', onClick: addFilter },
+                        { key: 'reset', label: 'Reset', onClick: resetFilters }
+                    ]}} trigger={['click']}>
+                        <Button>Menu</Button>
+                    </Dropdown>
+
+                    <Input
+                        placeholder="Hledat"
+                        className="gameSearch"
+                        onChange={(e) => {
+                            state.search = e.target.value;
+                            filterGames(1);
+                        }}
+                    />
+                    <div className="gameCount">Zobrazeno {stat.games.length} překladů</div>
+                </div>
+
+
+                <div className={cln({games:1})}>
+                    <VirtuosoGrid
+                        style={{ height: "100%" }}
+                        totalCount={stat.games.length}
+                        components={gridComponents}
+                        itemContent={(i) => {
+                            const game = stat.games[i] as Game;
+                            const allowModify = false; // TODO: Replace with proper auth check
+
+                            return (
+                                <Link className={cln({game: 1, ht: game.handTranslation == 1, ce: game.completeEdited == 1})}
+                                    to={`/game/${game.shortcut}`}
+                                    aria-label={`Detail hry ${game.name}`}
+                                >
+                                    <img 
+                                        className={cln({gameImg: 1, loaded: game.loaded})}
+                                        
+                                        src={`/img/hry/${game.shortcut}.webp?v${game.imgCount || 0}`}
+                                        alt={`${game.name} čeština ke stažení - download`}
+                                        onLoad={(e: any) => game.loaded = true}
+                                        onError={(e: any) => (e.target.src = "/img/hry/bez-obrazku.png?v1")}
+                                    />
+                                    <Link className="gameInfo" to={`/hra/${game.shortcut}`}>
+                                        <div className="gameName">{game.name}</div>
+                                        <div className="gameNumDl">
+                                            v{getGameVersion(game?.version || "") || "?"} <Fa.FaDownload /> {game.numDl}x
+                                        </div>
+                                        <div className="gameDate">
+                                            <span title="Změněno">{game.changed?.dmy}</span> / <span title="Přidáno">{game.added?.dmy}</span>
+                                        </div>
+                                        <div className="gameAutor">
+                                            {game.autors ? game.autors.split(",")[0] : ""}
+                                        </div>
+                                        {<div className="gameSign" /*style={{backgroundImage: `url(${gs.baseURL}img/zlato.webp)`}}*/ >
+                                            <div className="shadow" />
+                                        </div>}
+                                    </Link>
+                                </Link>
+                        )}}
+                    />
+                </div>
+
+
+            </div>
+
+
+        </div>
+    )
+}
