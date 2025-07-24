@@ -38,6 +38,7 @@ h1 {
 
 input {
   max-width: 10rem;
+  width: 10rem;
 }
 
 button {

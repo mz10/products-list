@@ -14,7 +14,7 @@ export const getGameVersion = (ver: String) => {
     return ver ? ver.substring(0, 1) + "." + ver.substring(1, ver.length) : "-";
 }
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return `${date.getDate()}. ${date.getMonth() + 1}. ${date.getFullYear()}`;
 }
