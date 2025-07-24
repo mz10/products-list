@@ -2,15 +2,17 @@ import '../styles/games.scss'
 import type { ReactNode } from 'react'
 import { forwardRef, useEffect } from 'react'
 import { proxy, useSnapshot } from 'valtio'
+import { useQuery } from '@tanstack/react-query'
 import { Dropdown, Button, Input, Spin } from 'antd'
 import { Link } from 'react-router-dom'
+import GameItemContent from './GameItemContent'
 //import { If } from './If'
 import { category, gameSorting, interest, interestObj, translationType } from '../constants';
 import { cln, getGameVersion } from '../utils/utils';
 import { VirtuosoGrid } from 'react-virtuoso';
 import * as Fa from 'react-icons/fa';
 
-interface Game {
+export interface Game {
     shortcut: string;
     name: string;
     loaded?: boolean;
@@ -47,30 +49,38 @@ const state = proxy({
         (a: Game, b: Game) => ((b.changed as any) || 0) - ((a.changed as any) || 0),
         (a: Game, b: Game) => (b.added as any) - (a.added as any),
         (a: Game, b: Game) => (a.rank || 0) - (b.rank || 0),
-        (a: Game, b: Game) => (a.name || "").localeCompare(b.name || "", "cs", { sensitivity: 'variant', caseFirst: 'upper' }),
-        (b: Game, a: Game) => (a.name || "").localeCompare(b.name || "", "cs", { sensitivity: 'variant', caseFirst: 'upper' })
+        (() => {
+            const collator = new Intl.Collator('cs', { sensitivity: 'variant', caseFirst: 'upper' });
+            return (a: Game, b: Game) => collator.compare(a.name || "", b.name || "");
+        })(),
+        (() => {
+            const collator = new Intl.Collator('cs', { sensitivity: 'variant', caseFirst: 'upper' });
+            return (a: Game, b: Game) => collator.compare(b.name || "", a.name || "");
+        })()
     ]
 });
 
 const Games: React.FC = () => {
     const stats = useSnapshot(state);
 
-    useEffect(() => {
-        const loadGames = async () => {
-            try {
-                const response = await fetch('/games.json');
-                if (!response.ok) throw new Error('Failed to load games');
-                const gamesData = await response.json();
-                state.games = gamesData;
-            } catch (error) {
-                console.error('Error loading games:', error);
-            } finally {
-                state.loading = false;
-            }
-        };
+    const { data: gamesData, isLoading } = useQuery<Game[]>({
+        queryKey: ['games'],
+        queryFn: async () => {
+            const response = await fetch('/games.json');
+            if (!response.ok) throw new Error('Failed to load games');
+            return response.json();
+        }
+    });
 
-        loadGames();
-    }, []);
+    useEffect(() => {
+        if (gamesData) {
+            state.games = gamesData;
+        }
+    }, [gamesData]);
+
+    useEffect(() => {
+        state.loading = isLoading;
+    }, [isLoading]);
 
     const gridComponents = {
         List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
@@ -99,35 +109,48 @@ const Games: React.FC = () => {
         onClick: () => void;
     };
 
-    const createMenuItems = (items: any[], keyPrefix: string, onClick: (value: any) => void): MenuItem[] => {
+    const createMenuItems = (items: any[], keyPrefix: string, currentValue: number, onClick: (value: any) => void): MenuItem[] => {
         return items.map((item, index) => ({
             key: `${keyPrefix}-${index}`,
             label: typeof item === 'string' ? item : item.toString(),
-            onClick: () => onClick(index)
+            onClick: () => onClick(index),
+            style: currentValue === index ? { 
+                backgroundColor: '#f0f0f0',
+                fontWeight: 'bold'
+            } : {}
         }));
     };
 
-    const sortingMenu = createMenuItems(gameSorting, 'sort', (i) => {
+    const sortingMenu = createMenuItems(gameSorting, 'sort', stats.sort, (i: number) => {
         state.sort = i;
         localStorage.gameSort = i;
         filterGames(1);
     });
 
-    const categoryMenu = createMenuItems(category, 'category', (i) => {
+    const categoryMenu = createMenuItems(category, 'category', stats.category, (i: number) => {
         state.category = i;
         filterGames(1);
     });
 
-    const sizeGameMenu = createMenuItems(Object.values(interestObj), 'size', (num) => {
-        state.size = num;
-        filterGames(1);
-    });
+    const sizeGameMenu = createMenuItems(
+        Object.entries(interestObj).map(([key, value]) => `${key} (${value})`), 
+        'size',
+        stats.size,
+        (num: number) => {
+            state.size = num;
+            filterGames(1);
+        }
+    );
 
-
-    const transTypeMenu = createMenuItems(Object.values(translationType), 'trans', (num) => {
-        state.transType = num;
-        filterGames(1);
-    });
+    const transTypeMenu = createMenuItems(
+        Object.entries(translationType).map(([key, value]) => `${key} (${value})`),
+        'trans',
+        stats.transType,
+        (num: number) => {
+            state.transType = num;
+            filterGames(1);
+        }
+    );
 
     const resetFilters = () => {
         state.sort = 1;
@@ -148,7 +171,36 @@ const Games: React.FC = () => {
     };
 
     const filterGames = (filterFn: any) => {
+        // Reset to all games first
+        const allGames = (window as any).gamesData || [];
+        
+        const filtered = allGames.filter((game: Game) => {
+            // Search by name
+            if (state.search && !game.name?.toLowerCase().includes(state.search.toLowerCase())) {
+                return false;
+            }
 
+            // Filter by category (0-based index)
+            if (state.category > 0 && game.autor !== state.category - 1) {
+                return false;
+            }
+
+            // Filter by size (0-based index)
+            if (state.size > 0 && game.rank !== state.size - 1) {
+                return false;
+            }
+
+            // Filter by quality (0-based index)
+            if (state.transType > 0 && game.handTranslation !== state.transType - 1) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // Apply sorting
+        filtered.sort(state.sortFn[state.sort]);
+        state.games = filtered;
     }
 
     return (
@@ -156,16 +208,24 @@ const Games: React.FC = () => {
             <div className="filterBar">
                 <span className="gameBar">
                     <Dropdown menu={{ items: sortingMenu }} trigger={['click']}>
-                        <Button>Řazení</Button>
+                        <Button style={stats.sort > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
+                            {stats.sort > 0 ? `${gameSorting[stats.sort]}` : 'Řazení'}
+                        </Button>
                     </Dropdown>
                     <Dropdown menu={{ items: categoryMenu }} trigger={['click']}>
-                        <Button>Žánr</Button>
+                        <Button style={stats.category > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
+                            {stats.category > 0 ? `${category[stats.category]}` : 'Žánr'}
+                        </Button>
                     </Dropdown>
                     <Dropdown menu={{ items: sizeGameMenu }} trigger={['click']}>
-                        <Button>Velikost</Button>
+                        <Button style={stats.size > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
+                            {stats.size > 0 ? `${Object.keys(interestObj)[stats.size-1]}` : 'Velikost'}
+                        </Button>
                     </Dropdown>
                     <Dropdown menu={{ items: transTypeMenu }} trigger={['click']}>
-                        <Button>Kvalita</Button>
+                        <Button style={stats.transType > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
+                            {stats.transType > 0 ? `${Object.keys(translationType)[stats.transType-1]}` : 'Kvalita'}
+                        </Button>
                     </Dropdown>
 
                     <Button onClick={resetFilters}>Reset</Button>
@@ -173,9 +233,17 @@ const Games: React.FC = () => {
                     <Input
                         placeholder="Hledat"
                         className="gameSearch"
+                        value={state.search}
                         onChange={(e) => {
                             state.search = e.target.value;
                             filterGames(1);
+                        }}
+                        onPressEnter={() => filterGames(1)}
+                        allowClear={{
+                            clearIcon: <span onClick={() => {
+                                state.search = "";
+                                filterGames(1);
+                            }}>✕</span>
                         }}
                     />
                 </span>
@@ -205,34 +273,11 @@ const Games: React.FC = () => {
                             const game = stats.games[i] as Game;
 
                             return (
-                                <Link className={cln({ game: 1, ht: game.handTranslation == 1, ce: game.completeEdited == 1 })}
-                                    to={`/game/${game.shortcut}`}
-                                    aria-label={`Detail hry ${game.name}`}
-                                >
-                                    <img
-                                        className={cln({ gameImg: 1, loaded: game.loaded })}
-
-                                        src={`https://komunitni-preklady.org/img/hry/${game.shortcut}.webp?v${game.imgCount || 0}`}
-                                        alt={`${game.name} čeština ke stažení - download`}
-                                        onLoad={(e: any) => state.games[i].loaded = true}
-                                        onError={(e: any) => (e.target.src = "https://komunitni-preklady.org/img/hry/bez-obrazku.png?v1")}
-                                    />
-                                    <div className='gameInfo'>
-                                        <div className="gameName">{game.name}</div>
-                                        <div className="gameNumDl">
-                                            v{getGameVersion(game?.version || "") || "?"} <Fa.FaDownload /> {game.numDl}x
-                                        </div>
-                                        <div className="gameDate">
-                                            <span title="Změněno">{game.changed ? new Date(game.changed).toLocaleDateString([], { weekday: 'long' }) : "-"}</span> 
-                                            <span> / </span>
-                                            <span title="Přidáno">{game.added ? new Date(game.added).toLocaleDateString([], { weekday: 'long' }) : "-"}</span> 
-                                        </div>
-                                        <div className="gameAutor">
-                                            {game.autors ? game.autors.split(",")?.[0] : ""}
-                                        </div>
-                                    </div>
-
-                                </Link>
+                                <GameItemContent 
+                                    game={game}
+                                    index={i}
+                                    onImageLoad={() => state.games[i].loaded = true}
+                                />
                             )
                         }}
                     />

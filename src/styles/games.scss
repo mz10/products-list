@@ -104,10 +104,16 @@
   padding: 0.5rem;
   font-weight: 200;
   font-size: 1.5rem;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  color: black;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: black;
+  line-height: 1.2;
 }
 
 .gameNumDl,
