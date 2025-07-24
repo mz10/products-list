@@ -1,69 +1,103 @@
-# React + TypeScript + Vite
+# Products List Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React-based web application for browsing and managing a list of game translations with filtering capabilities.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Browse game translations with details
+- Filter games by:
+  - Sorting (name, downloads, date)
+  - Category/genre
+  - Game size
+  - Translation quality
+- Responsive design for all screen sizes
+- Game detail pages
+- Image loading with fallbacks
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+products-list/
+├── public/                  # Static files
+│   ├── games.json           # Game data
+│   ├── no-img.png           # Fallback image
+│   └── vite.svg             # Vite logo
+├── src/
+│   ├── assets/              # Static assets
+│   ├── components/          # React components
+│   │   ├── GameDetail.tsx   # Game detail view
+│   │   ├── GameItemContent.tsx # Game list item
+│   │   ├── games.tsx        # Main game list
+│   │   └── If.tsx           # Conditional component
+│   ├── constants.ts         # App constants
+│   ├── hooks/               # Custom hooks
+│   ├── stores/              # State management
+│   ├── styles/              # SCSS styles
+│   ├── types/               # TypeScript types
+│   ├── utils/               # Utility functions
+│   ├── App.tsx              # Main app component
+│   └── main.tsx             # App entry point
+├── package.json             # Project dependencies
+├── tsconfig.json            # TypeScript config
+└── vite.config.ts           # Vite config
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository:
+```bash
+git clone https://github.com/mz10/products-list.git
+cd products-list
 ```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+pnpm install
+```
+
+3. Run development server:
+```bash
+npm run dev
+# or
+pnpm dev
+```
+
+4. Open in browser:
+```
+http://localhost:5173
+```
+
+## Building for Production
+
+```bash
+npm run build
+# or
+pnpm build
+```
+
+The build artifacts will be in the `dist/` directory.
+
+## Technologies Used
+
+- React 18
+- TypeScript
+- Vite
+- Valtio (state management)
+- Ant Design (UI components)
+- SCSS (styling)
+- React Icons
+- React Router
+
+## Data Flow
+
+1. Game data is loaded from `public/games.json`
+2. State is managed using Valtio stores
+3. Filters are applied to the game list
+4. Users can view game details by clicking on items
+5. Images are loaded with fallback to placeholder
+
+## License
+
+Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
