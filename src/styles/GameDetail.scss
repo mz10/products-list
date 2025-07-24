@@ -1,41 +1,124 @@
+.light-theme {
+  --bg-primary: white;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --primary-color: #1890ff;
+  --text-color: #495057;
+}
+
 .game-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  color: var(--text-color);
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  animation: fadeIn 0.5s ease-out;
+  color: var(--text-color, #333);
+  background: var(--bg-primary, white);
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   &__error {
-    color: var(--error-color);
-    background: var(--error-bg);
-    padding: 1rem;
-    border-radius: 4px;
-    margin: 1rem 0;
+    margin: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
   &__loading {
     display: flex;
     justify-content: center;
-    padding: 2rem;
+    padding: 4rem;
   }
 
-  img {
-    max-width: 100%;
-    height: auto;
-    margin: 1rem 0;
-    border-radius: 4px;
+  .game-card {
+    background: var(--bg-secondary, #f8f9fa);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+  }
+
+  .game-title {
+    color: var(--primary-color);
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 200;
   }
 
   .details-section {
-    background: var(--bg-secondary);
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
+  }
 
-    li {
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      background: var(--bg-primary);
-      border-radius: 4px;
+  .details-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .detail-item {
+    background: var(--bg-primary, #ffffff);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideFadeIn 0.5s ease-out forwards;
+
+    @for $i from 1 through 12 {
+      &:nth-child(#{$i}) {
+        animation-delay: $i * 0.1s;
+      }
+    }
+
+    &:hover {
+      background: var(--bg-tertiary, #e9ecef);
+    }
+  }
+
+  @keyframes slideFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .detail-label {
+    font-weight: 600;
+    min-width: 120px;
+  }
+
+  .detail-value {
+    color: var(--text-color, #495057);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    
+    .game-card {
+      padding: 1.5rem;
+    }
+
+    .game-title {
+      font-size: 1.8rem;
+    }
+
+    .details-list {
+      grid-template-columns: 1fr;
     }
   }
 }

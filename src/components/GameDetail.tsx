@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom'
 import { Spin, Alert } from 'antd'
 import { useGamesStore } from '../stores/gamesStore'
 import type { Game } from '../types/game'
-import { interest } from '../constants'
-import { formatDate } from '../utils/utils'
+import { formatDate, getGameVersion } from '../utils/utils'
+import { interestObj, translationType, category } from '../constants'
+import { If } from './If'
 
 export default function GameDetail() {
   const { shortcut } = useParams()
@@ -17,8 +18,8 @@ export default function GameDetail() {
 
   if (error) {
     return (
-      <div className="game-detail">
-        <Alert 
+    <div className="game-detail light-theme">
+        <Alert
           message="Error"
           description={error.message}
           type="error"
@@ -30,9 +31,9 @@ export default function GameDetail() {
 
   if (!game) {
     return (
-      <div className="game-detail">
-        <Alert 
-          message="Not Found" 
+    <div className="game-detail light-theme">
+        <Alert
+          message="Not Found"
           description="The requested game was not found"
           type="warning"
           className="game-detail__error"
@@ -40,21 +41,69 @@ export default function GameDetail() {
       </div>
     )
   }
-  
+
   return (
-    <div className="game-detail">
-      <h1>{game.name}</h1>
-      <div className="details-section">
-        <ul>
-          {game.autors && <li><strong>Autoři:</strong> {game.autors}</li>}
-          {game.version && <li><strong>Verze:</strong> {game.version}</li>}
-          {game.numDl && <li><strong>Počet stažení:</strong> {game.numDl}x</li>}
-          {game.changed && <li><strong>Poslední změna:</strong> {String(game.changed)}</li>}
-          {game.added && <li><strong>Přidáno:</strong> {String(game.added)}</li>}
-          {game.rank !== undefined && <li><strong>Velikost:</strong> {interest[game.rank] || game.rank}</li>}
-          {game.handTranslation && <li><strong>Kvalita překladu:</strong> {game.handTranslation ? 'Ruční' : 'Automatický'}</li>}
-          {game.completeEdited && <li><strong>Kompletní editace:</strong> {game.completeEdited ? 'Ano' : 'Ne'}</li>}
-        </ul>
+    <div className="game-detail light-theme">
+      <div className="game-card">
+        <h1 className="game-title">{game.name}</h1>
+        <div className="details-section">
+          <ul className="details-list">
+            <If is={game.category} and={category[game.category]}>
+              <li className="detail-item">
+                <span className="detail-label">Žánr:</span> 
+                <span className="detail-value">{category[game.category]}</span>
+              </li>
+            </If>
+            <If is={game.autors}>
+              <li className="detail-item">
+                <span className="detail-label">Autoři:</span> 
+                <span className="detail-value">{game.autors}</span>
+              </li>
+            </If>
+            <If is={game.version}>
+              <li className="detail-item">
+                <span className="detail-label">Verze:</span> 
+                <span className="detail-value">{game.version ? getGameVersion(game.version) : ''}</span>
+              </li>
+            </If>
+            <If is={game.numDl}>
+              <li className="detail-item">
+                <span className="detail-label">Počet stažení:</span> 
+                <span className="detail-value">{game.numDl?.toLocaleString()}x</span>
+              </li>
+            </If>
+            <If is={game.changed}>
+              <li className="detail-item">
+                <span className="detail-label">Změněno:</span> 
+                <span className="detail-value">{game.changed ? formatDate(game.changed) : ''}</span>
+              </li>
+            </If>
+            <If is={game.added}>
+              <li className="detail-item">
+                <span className="detail-label">Přidáno:</span> 
+                <span className="detail-value">{game.added ? formatDate(game.added) : ''}</span>
+              </li>
+            </If>
+            <If is={game.size}>
+              <li className="detail-item">
+                <span className="detail-label">Velikost hry:</span> 
+                <span className="detail-value">{
+                  Object.keys(interestObj).find(key =>
+                    interestObj[key as keyof typeof interestObj] === game.size
+                  ) || "-"
+                }</span>
+              </li>
+            </If>
+            <If is={game.translationType}>
+              <li className="detail-item">
+                <span className="detail-label">Kvalita překladu:</span>
+                <span className="detail-value">{
+                  Object.keys(translationType).find(key => game.translationType[key] !== undefined) || "-"
+                }</span>
+              </li>
+            </If>
+          </ul>
+        </div>
       </div>
     </div>
   )

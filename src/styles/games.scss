@@ -8,13 +8,12 @@
 }
 
 .filterBar {
-  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   background: gray;
   padding: 0.5rem;
   white-space: nowrap;
-  overflow-x: auto;
+  justify-content: space-between;
 }
 
 .gameBar {
@@ -39,6 +38,7 @@
   padding: 0 0.5rem;
   white-space: nowrap;
   flex-shrink: 0;
+  color: #ffffffe0;
 }
 
 .gameFlex {
@@ -140,6 +140,12 @@
   justify-content: center;
   align-items: center;
   height: 300px;
+}
+
+.game-detail__error {
+  margin: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .gameList {

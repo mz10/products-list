@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { forwardRef, useEffect } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import { useGamesStore } from '../stores/gamesStore'
-import { Dropdown, Button, Input, Spin } from 'antd'
+import { Dropdown, Button, Input, Spin, Alert } from 'antd'
 import GameItemContent from './GameItemContent'
 import { category, gameSorting, interestObj, translationType } from '../constants';
 import { VirtuosoGrid } from 'react-virtuoso';
@@ -36,11 +36,14 @@ const state = proxy({
 
 const Games: React.FC = () => {
     const stats = useSnapshot(state);
-    const { games, isLoading } = useGamesStore();
+    const { games, isLoading, error } = useGamesStore();
 
     useEffect(() => {
         state.games = [...games];
         state.loading = isLoading;
+        if (!isLoading) {
+            filterGames();
+        }
     }, [games, isLoading]);
 
     const gridComponents = {
@@ -126,14 +129,17 @@ const Games: React.FC = () => {
 
     const filterGames = () => {
         const searchLower = state.search.toLowerCase();
+
         const filtered = games.filter((game: Game) => {
-            let res = true;
-            res = res && (state.category === 0 || game.category === state.category);
-            res = res && (state.size === 0 || game.size === state.size);
-            res = res && (state.transType === 0 || state.transType > 0 && game.translationType === state.transType);
-            res = res && (state.search === "" || game.name.toLowerCase().includes(searchLower));
-            return res;
+            return (
+                (state.category === 0 || game.category === state.category)
+                && game.version !== "" && game.name !== ""
+                && (state.size === 0 || game.size === state.size)
+                && (state.transType === 0 || (state.transType > 0 && game.translationType[Object.keys(game.translationType)[0]] === state.transType))
+                && (state.search === "" || game.name.toLowerCase().includes(searchLower))
+            )
         });
+        
         filtered.sort(state.sortFn[state.sort]);
         state.games = filtered;
     }
@@ -171,7 +177,7 @@ const Games: React.FC = () => {
                             state.search = e.target.value;
                             filterGames();
                         }}
-                        allowClear
+                        allowClear={false}
                     />
                 </span>
                 <span className="rightBar">
@@ -184,6 +190,13 @@ const Games: React.FC = () => {
                 <div className="loading-spinner">
                     <Spin size="large" />
                 </div>
+            ) : error ? (
+                <Alert 
+                    message="Error"
+                    description={error.message}
+                    type="error"
+                    className="game-detail__error"
+                />
             ) : (
                 <div className="gameList">
                     <VirtuosoGrid
@@ -201,7 +214,11 @@ const Games: React.FC = () => {
                                 <GameItemContent
                                     game={game}
                                     index={i}
-                                    onImageLoad={() => state.games[i].loaded = true}
+            onImageLoad={() => {
+              const updatedGames = [...state.games];
+              updatedGames[i] = {...updatedGames[i], loaded: true};
+              state.games = updatedGames;
+            }}
                                 />
                             )
                         }}
