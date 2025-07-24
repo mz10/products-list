@@ -21,7 +21,10 @@ const GameItemContent = ({ game, index, onImageLoad }: GameItemContentProps) => 
                 src={`https://komunitni-preklady.org/img/hry/${game.shortcut}.webp?v${game.imgCount || 0}`}
                 alt={`${game.name} čeština`}
                 onLoad={onImageLoad}
-                onError={(e: any) => (e.target.src = "/no-img.png?v1")}
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/no-img.png?v1";
+                }}
             />
             <div className='gameInfo'>
                 <div className="gameName">{game.name}</div>

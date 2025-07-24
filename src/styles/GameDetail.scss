@@ -32,7 +32,7 @@
   }
 
   .game-card {
-    background: var(--bg-secondary, #f8f9fa);
+    background: white;
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -65,7 +65,7 @@
   }
 
   .detail-item {
-    background: var(--bg-primary, #ffffff);
+    background: #8080801a;
     padding: 1rem 1.5rem;
     border-radius: 8px;
     display: flex;

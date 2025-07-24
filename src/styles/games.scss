@@ -9,10 +9,11 @@
 
 .filterBar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  background: gray;
+  background: #b3a9a9;
   padding: 0.5rem;
-  white-space: nowrap;
+  gap: 0.5rem;
   justify-content: space-between;
 }
 
@@ -20,7 +21,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 
   button {
     min-width: 4.5rem;
@@ -39,6 +40,16 @@
   white-space: nowrap;
   flex-shrink: 0;
   color: #ffffffe0;
+  order: 1;
+  width: 100%;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .gameCount {
+    width: auto;
+    text-align: left;
+  }
 }
 
 .gameFlex {
