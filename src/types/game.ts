@@ -13,9 +13,7 @@ export interface Game {
   size: number
   hidden?: string;
   hiddenWeb?: string;
-  translationType: {
-    [key: string]: number
-  }
+  translationType: number;
   platform?: string
   language?: string
   notes?: string

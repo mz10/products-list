@@ -1,7 +1,8 @@
 import '../styles/Games.scss'
 import type { ReactNode } from 'react'
 import { forwardRef, useEffect } from 'react'
-import { proxy, useSnapshot } from 'valtio'
+import { useSnapshot } from 'valtio'
+import FilterBar, { state } from './FilterBar'
 import { useGamesStore } from '../stores/gamesStore'
 import { Dropdown, Button, Input, Spin, Alert } from 'antd'
 import GameItemContent from './GameItemContent'
@@ -11,28 +12,13 @@ import type { Game } from '../types/game'
 
 const collator = new Intl.Collator('cs', { sensitivity: 'variant', caseFirst: 'upper' });
 
-const state = proxy({
-    games: [] as Game[],
-    loading: true,
-    dynamicFilters: [],
-    sort: 0,
-    search: "",
-    type: 0,
-    category: 0,
-    size: 0,
-    team: 0,
-    transType: 0,
-    hidden: 0,
-    hideFilters: false,
-    filtersOpen: false,
-    sortFn: [
-        (a: Game, b: Game) => collator.compare(a.name || "", b.name || ""),
-        (a: Game, b: Game) => collator.compare(b.name || "", a.name || ""),
-        (a: Game, b: Game) => (b.numDl ? 1 : 0) - (a.numDl ? 1 : 0),
-        (a: Game, b: Game) => (b.changed?.getTime() || 0) - (a.changed?.getTime() || 0),
-        (a: Game, b: Game) => (b.added?.getTime() || 0) - (a.added?.getTime() || 0),
-    ]
-});
+const sortFn = [
+    (a: Game, b: Game) => collator.compare(a.name || "", b.name || ""),
+    (a: Game, b: Game) => collator.compare(b.name || "", a.name || ""),
+    (a: Game, b: Game) => (b.numDl ? 1 : 0) - (a.numDl ? 1 : 0),
+    (a: Game, b: Game) => (b.changed?.getTime() || 0) - (a.changed?.getTime() || 0),
+    (a: Game, b: Game) => (b.added?.getTime() || 0) - (a.added?.getTime() || 0),
+];
 
 const Games: React.FC = () => {
     const stats = useSnapshot(state);
@@ -106,8 +92,8 @@ const Games: React.FC = () => {
     );
 
     const transTypeMenu = createMenuItems(
-        Object.entries(translationType).map(([key,]) => key),
-        'trans',
+        Object.entries(translationType).map(([key, value]) => `${key} (${value})`),
+        'trans', 
         stats.transType,
         (num: number, item: any) => {
             state.transType = num;
@@ -118,12 +104,9 @@ const Games: React.FC = () => {
     const resetFilters = () => {
         state.sort = 1;
         state.search = "";
-        state.type = 0;
         state.category = 0;
         state.size = 0;
-        state.team = 0;
         state.transType = 0;
-        state.hidden = 0;
         filterGames();
     };
 
@@ -135,63 +118,28 @@ const Games: React.FC = () => {
                 (state.category === 0 || game.category === state.category)
                 && game.version !== "" && game.name !== ""
                 && (state.size === 0 || game.size === state.size)
-                && (state.transType === 0 || (state.transType > 0 && game.translationType[Object.keys(game.translationType)[0]] === state.transType))
+                && (state.transType === 0 || game.translationType === state.transType)
                 && (state.search === "" || game.name.toLowerCase().includes(searchLower))
             )
         });
-        
-        filtered.sort(state.sortFn[state.sort]);
+
+        filtered.sort(sortFn[state.sort]);
         state.games = filtered;
     }
 
     return (
         <div className="games">
-            <div className="filterBar">
-                <span className="gameBar">
-                    <Dropdown menu={{ items: sortingMenu }} trigger={['click']}>
-                        <Button style={stats.sort > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
-                            Řazení
-                        </Button>
-                    </Dropdown>
-                    <Dropdown menu={{ items: categoryMenu }} trigger={['click']}>
-                        <Button style={stats.category > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
-                            Žánr
-                        </Button>
-                    </Dropdown>
-                    <Dropdown menu={{ items: sizeGameMenu }} trigger={['click']}>
-                        <Button style={stats.size > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
-                            Velikost
-                        </Button>
-                    </Dropdown>
-                    <Dropdown menu={{ items: transTypeMenu }} trigger={['click']}>
-                        <Button style={stats.transType > 0 ? { fontWeight: 'bold', background: '#f0f0f0' } : {}}>
-                            Kvalita
-                        </Button>
-                    </Dropdown>
-                    <Button onClick={resetFilters}>Reset</Button>
-                    <Input
-                        placeholder="Hledat"
-                        className="gameSearch"
-                        value={state.search}
-                        onChange={(e) => {
-                            state.search = e.target.value;
-                            filterGames();
-                        }}
-                        allowClear={false}
-                    />
-                </span>
-                <span className="rightBar">
-                    {!stats.loading && (
-                        <div className="gameCount">Zobrazeno {stats.games.length} překladů</div>
-                    )}
-                </span>
-            </div>
+            <FilterBar 
+                onFilter={filterGames}
+                gamesCount={stats.games.length}
+                loading={stats.loading}
+            />
             {stats.loading ? (
                 <div className="loading-spinner">
                     <Spin size="large" />
                 </div>
             ) : error ? (
-                <Alert 
+                <Alert
                     message="Error"
                     description={error.message}
                     type="error"
@@ -214,11 +162,11 @@ const Games: React.FC = () => {
                                 <GameItemContent
                                     game={game}
                                     index={i}
-            onImageLoad={() => {
-              const updatedGames = [...state.games];
-              updatedGames[i] = {...updatedGames[i], loaded: true};
-              state.games = updatedGames;
-            }}
+                                    onImageLoad={() => {
+                                        const updatedGames = [...state.games];
+                                        updatedGames[i] = { ...updatedGames[i], loaded: true };
+                                        state.games = updatedGames;
+                                    }}
                                 />
                             )
                         }}

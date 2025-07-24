@@ -98,7 +98,9 @@ export default function GameDetail() {
               <li className="detail-item">
                 <span className="detail-label">Kvalita překladu:</span>
                 <span className="detail-value">{
-                  Object.keys(translationType).find(key => game.translationType[key] !== undefined) || "-"
+                  Object.entries(translationType).find(([_, value]) => 
+                    value === game.translationType
+                  )?.[0] || "-"
                 }</span>
               </li>
             </If>
