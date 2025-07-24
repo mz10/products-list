@@ -25,6 +25,7 @@ products-list/
 ├── src/
 │   ├── assets/              # Static assets
 │   ├── components/          # React components
+│   │   ├── FilterBar.tsx    # Filters and searching
 │   │   ├── GameDetail.tsx   # Game detail view
 │   │   ├── GameItemContent.tsx # Game list item
 │   │   ├── games.tsx        # Main game list
@@ -44,37 +45,54 @@ products-list/
 
 ## Installation
 
-1. Clone the repository:
+### Recommended: pnpm
+This project recommends using [pnpm](https://pnpm.io/) for faster and more efficient dependency management.
+
+1. Install pnpm globally (if you don't have it):
+```bash
+npm install -g pnpm
+# or using winget on Windows:
+winget install pnpm
+```
+
+2. Clone the repository:
 ```bash
 git clone https://github.com/mz10/products-list.git
 cd products-list
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 ```bash
-npm install
-# or
 pnpm install
 ```
 
-3. Run development server:
+4. Run development server:
 ```bash
-npm run dev
-# or
 pnpm dev
 ```
 
-4. Open in browser:
+5. Open in browser:
 ```
 http://localhost:5173
 ```
 
+### Alternative: npm
+If you prefer using npm:
+```bash
+npm install
+npm run dev
+```
+
 ## Building for Production
 
+Using pnpm (recommended):
+```bash
+pnpm build
+```
+
+Using npm:
 ```bash
 npm run build
-# or
-pnpm build
 ```
 
 The build artifacts will be in the `dist/` directory.
