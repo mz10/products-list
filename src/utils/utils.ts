@@ -1,8 +1,8 @@
-export const cln = (clsObject: Object) => {
-    return Object.entries(clsObject).filter(([key,val]) => val).map(([key]) => key).join(" ");
+export const cln = (clsObject: object) => {
+    return Object.entries(clsObject).filter(([,val]) => val).map(([key]) => key).join(" ");
 }
 
-export const getGameVersion = (ver: String) => {
+export const getGameVersion = (ver: string) => {
     if(!ver) return "";
 
     //verze bez upravy pokud obsahuje tecku

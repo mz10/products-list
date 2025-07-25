@@ -1,30 +1,25 @@
 import { Dropdown, Button, Input } from 'antd'
 import type { MenuProps } from 'antd'
-import { useSnapshot, proxy } from 'valtio'
+import { useSnapshot } from 'valtio'
 
-import type { Game } from '../types/types'
 import { category, gameSorting, interestObj, translationType } from '../constants'
-
-export const state = proxy({
-    games: [] as Game[],
-    loading: true,
-    sort: 0,
-    search: "",
-    category: 0,
-    size: 0,
-    transType: 0,
-})
+import { filterState as state } from '../stores/filterState'
 
 type FilterBarProps = {
     onFilter: () => void
-    gamesCount: number
+    gamesCount: number  
     loading: boolean
 }
 
 const FilterBar = ({ onFilter, gamesCount, loading }: FilterBarProps) => {
     const stats = useSnapshot(state)
 
-    const createMenuItems = (items: any[], keyPrefix: string, currentValue: number, onClick: (value: any, item: any) => void): MenuProps['items'] => {
+    const createMenuItems = <T extends string | number | { toString(): string }>(
+        items: T[],
+        keyPrefix: string,
+        currentValue: number,
+        onClick: (value: number, item: T) => void
+    ): MenuProps['items'] => {
         return items.map((item, index) => ({
             key: `${keyPrefix}-${index}`,
             label: typeof item === 'string' ? item : item.toString(),
@@ -48,20 +43,20 @@ const FilterBar = ({ onFilter, gamesCount, loading }: FilterBarProps) => {
     })
 
     const sizeGameMenu = createMenuItems(
-        Object.entries(interestObj).map(([key]) => key),
-        'size', 
+        Object.keys(interestObj) as Array<keyof typeof interestObj>,
+        'size',
         stats.size,
-        (num: number, item: keyof typeof interestObj) => {
+        (_num: number, item: keyof typeof interestObj) => {
             state.size = interestObj[item]
         }
     )
 
     const transTypeMenu = createMenuItems(
-        Object.entries(translationType).map(([key,]) => key),
+        Object.keys(translationType) as Array<keyof typeof translationType>,
         'trans',
         stats.transType,
-        (num: number) => {
-            state.transType = num
+        (_num: number, item: keyof typeof translationType) => {
+            state.transType = translationType[item]
         }
     )
 

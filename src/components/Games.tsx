@@ -1,12 +1,13 @@
+import '../styles/Games.scss'
 import type { ReactNode } from 'react'
-import { forwardRef, useEffect } from 'react'
+import { forwardRef, useEffect, useCallback } from 'react'
 import { useSnapshot } from 'valtio'
 import { Spin, Alert } from 'antd'
 import { VirtuosoGrid } from 'react-virtuoso';
 
 import { If } from './If'
-import '../styles/Games.scss'
-import FilterBar, { stat } from './FilterBar'
+import FilterBar from './FilterBar'
+import { filterState as state } from '../stores/filterState'
 import { useGamesStore } from '../stores/gamesStore'
 import GameItemContent from './GameItemContent'
 import type { Game } from '../types/types'
@@ -22,16 +23,32 @@ const sortFn = [
 ];
 
 const Games: React.FC = () => {
-    const stats = useSnapshot(stat);
+    const stats = useSnapshot(state);
     const { games, isLoading, error } = useGamesStore();
 
+    const filterGames = useCallback(() => {
+        const searchLower = state.search.toLowerCase();
+        const filtered = games.filter((game: Game) => {
+            return (
+                (state.category === 0 || game.category === state.category) &&
+                game.version !== "" && 
+                game.name !== "" &&
+                (state.size === 0 || game.size === state.size) &&
+                (state.transType === 0 || game.translationType === state.transType) &&
+                (state.search === "" || game.name.toLowerCase().includes(searchLower))
+            );
+        });
+        filtered.sort(sortFn[state.sort]);
+        state.games = filtered;
+    }, [games]);
+
     useEffect(() => {
-        stat.games = [...games];
-        stat.loading = isLoading;
+        state.games = [...games];
+        state.loading = isLoading;
         if (!isLoading) {
             filterGames();
         }
-    }, [games, isLoading]);
+    }, [games, isLoading, filterGames]);
 
     const gridComponents = {
         List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
@@ -52,23 +69,6 @@ const Games: React.FC = () => {
             </div>
         )),
         Item: ({ children }: { children?: ReactNode }) => children
-    }
-
-    const filterGames = () => {
-        const searchLower = stat.search.toLowerCase();
-
-        const filtered = games.filter((game: Game) => {
-            return (
-                (stat.category === 0 || game.category === stat.category)
-                && game.version !== "" && game.name !== ""
-                && (stat.size === 0 || game.size === stat.size)
-                && (stat.transType === 0 || game.translationType === stat.transType)
-                && (stat.search === "" || game.name.toLowerCase().includes(searchLower))
-            )
-        });
-
-        filtered.sort(sortFn[stat.sort]);
-        stat.games = filtered;
     }
 
     return (
@@ -109,9 +109,9 @@ const Games: React.FC = () => {
                                     game={game}
                                     index={i}
                                     onImageLoad={() => {
-                                        const updatedGames = [...stat.games];
+                                        const updatedGames = [...state.games];
                                         updatedGames[i] = { ...updatedGames[i], loaded: true };
-                                        stat.games = updatedGames;
+                                        state.games = updatedGames;
                                     }}
                                 />
                             )
