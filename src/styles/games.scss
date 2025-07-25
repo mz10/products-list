@@ -66,17 +66,11 @@
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-
   width: 27rem;
   display: flex;
   flex: none;
   align-content: stretch;
   box-sizing: border-box;
-  
-  &:hover {
-    transform: translateY(-4px);
-  }
 }
 
 .gameImg {

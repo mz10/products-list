@@ -1,11 +1,12 @@
-import '../styles/GameDetail.scss'
 import { useParams } from 'react-router-dom'
 import { Spin, Alert } from 'antd'
+
+import { If } from './If'
+import '../styles/GameDetail.scss'
 import { useGamesStore } from '../stores/gamesStore'
-import type { Game } from '../types/game'
+import type { Game } from '../types/types'
 import { formatDate, getGameVersion } from '../utils/utils'
 import { interestObj, translationType, category } from '../constants'
-import { If } from './If'
 
 export default function GameDetail() {
   const { shortcut } = useParams()
@@ -98,7 +99,7 @@ export default function GameDetail() {
               <li className="detail-item">
                 <span className="detail-label">Kvalita překladu:</span>
                 <span className="detail-value">{
-                  Object.entries(translationType).find(([_, value]) => 
+                  Object.entries(translationType).find(([, value]) => 
                     value === game.translationType
                   )?.[0] || "-"
                 }</span>

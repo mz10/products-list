@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
+
 import { cln, getGameVersion, formatDate } from '../utils/utils'
 import * as Fa from 'react-icons/fa'
-import type { Game } from '../types/game'
+import type { Game } from '../types/types'
 
 interface GameItemContentProps {
     game: Game
@@ -9,7 +10,7 @@ interface GameItemContentProps {
     onImageLoad?: () => void
 }
 
-const GameItemContent = ({ game, index, onImageLoad }: GameItemContentProps) => {
+const GameItemContent = ({ game, onImageLoad }: GameItemContentProps) => {
     return (
         <Link 
             className={cln({ game: 1 })}

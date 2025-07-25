@@ -1,14 +1,15 @@
-import '../styles/Games.scss'
 import type { ReactNode } from 'react'
 import { forwardRef, useEffect } from 'react'
 import { useSnapshot } from 'valtio'
-import FilterBar, { state } from './FilterBar'
-import { useGamesStore } from '../stores/gamesStore'
-import { Dropdown, Button, Input, Spin, Alert } from 'antd'
-import GameItemContent from './GameItemContent'
-import { category, gameSorting, interestObj, translationType } from '../constants';
+import { Spin, Alert } from 'antd'
 import { VirtuosoGrid } from 'react-virtuoso';
-import type { Game } from '../types/game'
+
+import { If } from './If'
+import '../styles/Games.scss'
+import FilterBar, { stat } from './FilterBar'
+import { useGamesStore } from '../stores/gamesStore'
+import GameItemContent from './GameItemContent'
+import type { Game } from '../types/types'
 
 const collator = new Intl.Collator('cs', { sensitivity: 'variant', caseFirst: 'upper' });
 
@@ -21,12 +22,12 @@ const sortFn = [
 ];
 
 const Games: React.FC = () => {
-    const stats = useSnapshot(state);
+    const stats = useSnapshot(stat);
     const { games, isLoading, error } = useGamesStore();
 
     useEffect(() => {
-        state.games = [...games];
-        state.loading = isLoading;
+        stat.games = [...games];
+        stat.loading = isLoading;
         if (!isLoading) {
             filterGames();
         }
@@ -35,7 +36,7 @@ const Games: React.FC = () => {
     const gridComponents = {
         List: forwardRef<HTMLDivElement, { style?: React.CSSProperties, children?: ReactNode }>(({ style, children, ...props }, ref) => (
             <div
-                ref={ref as any}
+                ref={ref}
                 className="gameFlex"
                 {...props}
                 style={{
@@ -50,102 +51,47 @@ const Games: React.FC = () => {
                 {children}
             </div>
         )),
-        Item: ({ children, ...props }: { children?: ReactNode }) => children
+        Item: ({ children }: { children?: ReactNode }) => children
     }
 
-    type MenuItem = {
-        key: string;
-        label: string;
-        onClick: () => void;
-    };
-
-    const createMenuItems = (items: any[], keyPrefix: string, currentValue: number, onClick: (value: any, item: any) => void): MenuItem[] => {
-        return items.map((item, index) => ({
-            key: `${keyPrefix}-${index}`,
-            label: typeof item === 'string' ? item : item.toString(),
-            onClick: () => onClick(index, item),
-            style: currentValue === index ? {
-                backgroundColor: '#f0f0f0',
-                fontWeight: 'bold'
-            } : {}
-        }));
-    };
-
-    const sortingMenu = createMenuItems(gameSorting, 'sort', stats.sort, (i: number) => {
-        state.sort = i;
-        filterGames();
-    });
-
-    const categoryMenu = createMenuItems(category, 'category', stats.category, (i: number) => {
-        state.category = i;
-        filterGames();
-    });
-
-    const sizeGameMenu = createMenuItems(
-        Object.entries(interestObj).map(([key, val]) => key),
-        'size',
-        stats.size,
-        (num: number, item: keyof typeof interestObj) => {
-            state.size = interestObj[item];
-            filterGames();
-        }
-    );
-
-    const transTypeMenu = createMenuItems(
-        Object.entries(translationType).map(([key, value]) => `${key} (${value})`),
-        'trans', 
-        stats.transType,
-        (num: number, item: any) => {
-            state.transType = num;
-            filterGames();
-        }
-    );
-
-    const resetFilters = () => {
-        state.sort = 1;
-        state.search = "";
-        state.category = 0;
-        state.size = 0;
-        state.transType = 0;
-        filterGames();
-    };
-
     const filterGames = () => {
-        const searchLower = state.search.toLowerCase();
+        const searchLower = stat.search.toLowerCase();
 
         const filtered = games.filter((game: Game) => {
             return (
-                (state.category === 0 || game.category === state.category)
+                (stat.category === 0 || game.category === stat.category)
                 && game.version !== "" && game.name !== ""
-                && (state.size === 0 || game.size === state.size)
-                && (state.transType === 0 || game.translationType === state.transType)
-                && (state.search === "" || game.name.toLowerCase().includes(searchLower))
+                && (stat.size === 0 || game.size === stat.size)
+                && (stat.transType === 0 || game.translationType === stat.transType)
+                && (stat.search === "" || game.name.toLowerCase().includes(searchLower))
             )
         });
 
-        filtered.sort(sortFn[state.sort]);
-        state.games = filtered;
+        filtered.sort(sortFn[stat.sort]);
+        stat.games = filtered;
     }
 
     return (
         <div className="games">
-            <FilterBar 
+            <FilterBar
                 onFilter={filterGames}
                 gamesCount={stats.games.length}
                 loading={stats.loading}
             />
-            {stats.loading ? (
+            <If is={stats.loading}>
                 <div className="loading-spinner">
                     <Spin size="large" />
                 </div>
-            ) : error ? (
+            </If>
+            <If is={error}>
                 <Alert
                     message="Error"
-                    description={error.message}
+                    description={error?.message}
                     type="error"
                     className="game-detail__error"
                 />
-            ) : (
+            </If>
+            <If is={!error}>
                 <div className="gameList">
                     <VirtuosoGrid
                         style={{
@@ -163,16 +109,16 @@ const Games: React.FC = () => {
                                     game={game}
                                     index={i}
                                     onImageLoad={() => {
-                                        const updatedGames = [...state.games];
+                                        const updatedGames = [...stat.games];
                                         updatedGames[i] = { ...updatedGames[i], loaded: true };
-                                        state.games = updatedGames;
+                                        stat.games = updatedGames;
                                     }}
                                 />
                             )
                         }}
                     />
                 </div>
-            )}
+            </If>
         </div>
     )
 }

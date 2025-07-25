@@ -18,3 +18,9 @@ export interface Game {
   language?: string
   notes?: string
 }
+
+type MenuItem = {
+  key: string;
+  label: string;
+  onClick: () => void;
+};

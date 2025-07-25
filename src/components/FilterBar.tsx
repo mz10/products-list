@@ -1,8 +1,8 @@
 import { Dropdown, Button, Input } from 'antd'
 import type { MenuProps } from 'antd'
-import { useSnapshot } from 'valtio'
-import { proxy } from 'valtio'
-import type { Game } from '../types/game'
+import { useSnapshot, proxy } from 'valtio'
+
+import type { Game } from '../types/types'
 import { category, gameSorting, interestObj, translationType } from '../constants'
 
 export const state = proxy({
@@ -57,7 +57,7 @@ const FilterBar = ({ onFilter, gamesCount, loading }: FilterBarProps) => {
     )
 
     const transTypeMenu = createMenuItems(
-        Object.entries(translationType).map(([key, value]) => key),
+        Object.entries(translationType).map(([key,]) => key),
         'trans',
         stats.transType,
         (num: number) => {
